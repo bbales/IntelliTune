@@ -6,12 +6,12 @@ class Analyzer {
         // Update time in ms
         this._refreshRate = 60
 
+        // Initialize native analyser (API uses different spelling than I prefer)
         this.initFFT()
 
         // Reduce to the highest frequency of interest
         this._bandwidth = 200
         this._bandwidthNormal = Math.round(this.normalizeFrequency(this._bandwidth))
-
     }
 
     initInputSource() {
@@ -44,7 +44,8 @@ class Analyzer {
 
         // Take the derivative of the data! Map that to a regular array too, no typed array nonsense
         let derivative = Array.prototype
-            .map.bind(this._filtData)(f => parseInt(f))
+            .map
+            .bind(this._filtData)(f => parseInt(f))
             .map((f, i, a) => f - (i == 0 ? 0 : a[i - 1]))
 
         // Find sign changes
@@ -62,13 +63,17 @@ class Analyzer {
         this._analyser.getByteFrequencyData(this._byteData)
 
         // Find the average (noise floor)
-        let avg = this._byteData.slice(0, this._bandwidthNormal).reduce((a, v) => a += v) / this._bandwidthNormal
+        let avg = this._byteData
+            .slice(0, this._bandwidthNormal)
+            .reduce((a, v) => a += v) / this._bandwidthNormal
 
         // To remove the basic avg filtering, just uncomment this line
         avg = 0
 
         // Reduce all components to lower the floor
-        this._filtData = this._byteData.map(f => f > avg ? f - avg : 0).map(f => f * (1 + avg / 256))
+        this._filtData = this._byteData
+            .map(f => f > avg ? f - avg : 0)
+            .map(f => f * (1 + avg / 256))
 
         this._filtData = this.frequencyPeaks
 
