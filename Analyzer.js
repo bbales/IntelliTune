@@ -3,9 +3,6 @@ class Analyzer {
         // Create audio context and analyzer
         this._actx = new(window.AudioContext || window.webkitAudioContext)()
 
-        // Update time in ms
-        this._refreshRate = 60
-
         // Initialize native analyser (API uses different spelling than I prefer)
         this.initFFT()
 
@@ -36,7 +33,7 @@ class Analyzer {
     }
 
     normalizeFrequency(freq) {
-        return this._analyser.frequencyBinCount * freq / (this._actx.sampleRate / 2)
+        return Math.round(2 * this._analyser.frequencyBinCount * freq / this._actx.sampleRate)
     }
 
     get frequencyPeaks() {
@@ -68,17 +65,17 @@ class Analyzer {
             .reduce((a, v) => a += v) / this._bandwidthNormal
 
         // To remove the basic avg filtering, just uncomment this line
-        avg = 0
+        // avg = 0
 
         // Reduce all components to lower the floor
         this._filtData = this._byteData
             .map(f => f > avg ? f - avg : 0)
             .map(f => f * (1 + avg / 256))
 
-        this._filtData = this.frequencyPeaks
+        // this._filtData = this.frequencyPeaks
 
         // Recursively update
-        setTimeout(() => this.update(), this._refreshRate)
+        window.requestAnimationFrame(() => this.update())
     }
 
     run() {
